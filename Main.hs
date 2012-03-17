@@ -101,12 +101,7 @@ main = do
       compBy :: Ord a => (Session -> a) -> TreeIter -> TreeIter -> IO Ordering
       compBy f a b =
         comparing f <$> getByIter a <*> getByIter b
-
   treeSortableSetDefaultSortFunc sorted $ Just $ compBy (map toLower . sUser)
-  treeSortableSetSortFunc sorted 0 $ compBy (map toLower . sDisplay)
-  treeSortableSetSortFunc sorted 1 $ compBy (map toLower . sVT)
-  treeSortableSetSortFunc sorted 2 $ compBy (map toLower . sUser)
-  treeSortableSetSortFunc sorted 3 $ compBy (map toLower . sType)
 
   view <- treeViewNewWithModel sorted
   treeViewSetRulesHint view True
@@ -120,6 +115,7 @@ main = do
         treeViewColumnPackStart column cell True
         cellLayoutSetAttributes column cell store
           (\p -> [ cellText := acc p ])
+        treeSortableSetSortFunc sorted id $ compBy (map toLower . acc)
 
   addColumn "Display"      0 sDisplay
   addColumn "VT"           1 sVT
