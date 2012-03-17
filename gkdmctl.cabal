@@ -1,0 +1,22 @@
+name:               gkdmctl
+version:            0.0
+
+author:             Oleg Belozeorov
+maintainer:         Oleg Belozeorov <upwawet@gmail.com>
+copyright:          (C) 2012 Oleg Belozeorov
+license:            GPL-3
+license-file:       COPYING
+
+category:           Utils
+synopsis:           A GUI for kdmctl.
+description:
+  A GUI for kdmctl.
+
+cabal-version:      >= 1.6
+build-type:         Simple
+extra-source-files: Makefile
+
+executable gkdmctl
+  main-is:          Main.hs
+  build-depends:    base, gtk, parsec, process
+  ghc-options:      -W
