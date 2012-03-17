@@ -18,5 +18,5 @@ extra-source-files: Makefile
 
 executable gkdmctl
   main-is:          Main.hs
-  build-depends:    base, gtk, parsec, process
+  build-depends:    base, gtk, parsec, process, mtl
   ghc-options:      -W

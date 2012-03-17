@@ -6,6 +6,7 @@ import System.Process
 import Text.Parsec
 import Control.Applicative ((<$>), (<*>))
 import Control.Monad
+import Control.Monad.Trans
 import Data.Char (toLower)
 import Data.Ord
 
@@ -28,6 +29,8 @@ getSessionList = do
   return $ either (const $ Left "parse error") id $ parse parseOutput "<command output>" o
 
 switchTo s = void $ rawSystem "kdmctl" ["activate", sDisplay s]
+
+newSession = void $ rawSystem "kdmctl" ["reserve"]
 
 emptySession =
   S { sDisplay = ""
@@ -77,6 +80,14 @@ main = do
 
   window <- windowNew
   window `onDestroy` mainQuit
+  window `on` keyPressEvent $ tryEvent $ do
+    "Escape" <- eventKeyName
+    []       <- eventModifier
+    liftIO $ widgetDestroy window
+
+  box <- vBoxNew False 7
+  containerSetBorderWidth box 7
+  containerAdd window box
 
   ss <- either (const []) id <$> getSessionList
   print ss
@@ -115,17 +126,36 @@ main = do
   addColumn "User"         2 sUser
   addColumn "Session Type" 3 sType
 
-  view `onRowActivated` \p _ -> do
+  view `on` rowActivated $ \p _ -> do
     [n] <- treeModelSortConvertChildPathToPath sorted p
     s   <- listStoreGetValue store n
     widgetDestroy window
     switchTo s
 
+  sel <- treeViewGetSelection view
+  treeSelectionSelectPath sel [0]
+
   scroll <- scrolledWindowNew Nothing Nothing
   scrolledWindowSetPolicy scroll PolicyAutomatic PolicyAutomatic
   scrolledWindowSetShadowType scroll ShadowIn
   containerAdd scroll view
-  containerAdd window scroll
+
+  boxPackStartDefaults box scroll
+
+  bts <- hButtonBoxNew
+  buttonBoxSetLayout bts ButtonboxEnd
+  boxSetSpacing bts 7
+  boxPackStart box bts PackNatural 0
+
+  b <- buttonNewWithMnemonic "_New Session"
+  b `on` buttonActivated $ do
+    widgetDestroy window
+    newSession
+  containerAdd bts b
+
+  b <- buttonNewWithMnemonic "_Close"
+  b `on` buttonActivated $  widgetDestroy window
+  containerAdd bts b
 
   widgetShowAll window
   mainGUI
